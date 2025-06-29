@@ -298,7 +298,10 @@
                         <option value="flute">🪈 Flûte</option>
                         <option value="bass">🎸 Basse</option>
                         <option value="organ">⛪ Orgue</option>
-                        <option value="percussion">🥁 Percussion</option>
+                        <option value="kick_drum">🥁 Grosse Caisse</option>
+                        <option value="snare_drum">🥁 Caisse Claire</option>
+                        <option value="hihat">🥁 Charleston</option>
+                        <option value="crash_cymbal">🥁 Cymbale Crash</option>
                     </select>
                 </div>
             </div>
@@ -335,6 +338,9 @@
         let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         let noteTimeout = null;
 
+        // Liste des instruments de percussion pour la logique de déclenchement
+        const percussionInstruments = ['kick_drum', 'snare_drum', 'hihat', 'crash_cymbal'];
+
         // Configuration des instruments avec Tone.js
         const instruments = {
             piano: () => new Tone.Sampler({
@@ -348,19 +354,20 @@
                 baseUrl: "https://tonejs.github.io/audio/salamander/"
             }),
             guitar: () => new Tone.PluckSynth({
-                attackNoise: 1,
-                dampening: 4000,
-                resonance: 0.9
+                attackNoise: 1.5,
+                dampening: 5000,
+                resonance: 0.8,
+                release: 0.5
             }),
             trumpet: () => new Tone.Synth({
                 oscillator: {
                     type: "sawtooth"
                 },
                 envelope: {
-                    attack: 0.1,
-                    decay: 0.2,
-                    sustain: 0.3,
-                    release: 0.8
+                    attack: 0.05,
+                    decay: 0.1,
+                    sustain: 0.6,
+                    release: 0.5
                 }
             }),
             violin: () => new Tone.Synth({
@@ -368,26 +375,34 @@
                     type: "sawtooth"
                 },
                 envelope: {
-                    attack: 0.2,
+                    attack: 0.1,
                     decay: 0.1,
                     sustain: 0.9,
-                    release: 1.2
+                    release: 1.5
                 },
                 filter: {
-                    Q: 6,
+                    Q: 4,
                     type: "lowpass",
                     rolloff: -24
-                }
+                },
+                vibratoAmount: 0.5,
+                vibratoRate: 5
             }),
             saxophone: () => new Tone.Synth({
                 oscillator: {
-                    type: "square"
+                    type: "triangle"
                 },
                 envelope: {
-                    attack: 0.1,
-                    decay: 0.3,
-                    sustain: 0.8,
-                    release: 0.5
+                    attack: 0.08,
+                    decay: 0.2,
+                    sustain: 0.7,
+                    release: 0.4
+                },
+                filter: {
+                    Q: 3,
+                    type: "bandpass",
+                    rolloff: -12,
+                    frequency: 800
                 }
             }),
             flute: () => new Tone.Synth({
@@ -395,10 +410,15 @@
                     type: "sine"
                 },
                 envelope: {
-                    attack: 0.2,
+                    attack: 0.15,
                     decay: 0.1,
                     sustain: 0.2,
-                    release: 2
+                    release: 1.8
+                },
+                filter: {
+                    Q: 2,
+                    type: "highpass",
+                    frequency: 500
                 }
             }),
             bass: () => new Tone.MonoSynth({
@@ -406,41 +426,81 @@
                     type: "square"
                 },
                 envelope: {
-                    attack: 0.1,
-                    decay: 0.3,
-                    sustain: 0.4,
-                    release: 1.2
+                    attack: 0.05,
+                    decay: 0.4,
+                    sustain: 0.3,
+                    release: 1.5
                 },
                 filter: {
-                    Q: 2,
+                    Q: 4,
                     type: "lowpass",
-                    rolloff: -12
+                    rolloff: -24
                 }
             }),
             organ: () => new Tone.Synth({
                 oscillator: {
-                    type: "fat sawtooth"
+                    type: "fatsawtooth"
                 },
                 envelope: {
-                    attack: 0.02,
+                    attack: 0.05,
                     decay: 0.1,
                     sustain: 0.9,
-                    release: 0.4
-                }
+                    release: 0.8
+                },
+                detune: 0
             }),
-            percussion: () => new Tone.MembraneSynth({
-                pitchDecay: 0.05,
-                octaves: 10,
+            kick_drum: () => new Tone.MembraneSynth({
+                pitchDecay: 0.02,
+                octaves: 8,
                 oscillator: {
                     type: "sine"
                 },
                 envelope: {
                     attack: 0.001,
-                    decay: 0.4,
+                    decay: 0.5,
                     sustain: 0.01,
-                    release: 1.4,
-                    sustain: 0
+                    release: 0.8
                 }
+            }),
+            snare_drum: () => new Tone.NoiseSynth({
+                noise: {
+                    type: "white"
+                },
+                envelope: {
+                    attack: 0.005,
+                    decay: 0.1,
+                    sustain: 0.0,
+                    release: 0.05
+                }
+            }),
+            hihat: () => new Tone.NoiseSynth({
+                noise: {
+                    type: "white"
+                },
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.05,
+                    sustain: 0.0,
+                    release: 0.01
+                },
+                filter: {
+                    Q: 1,
+                    type: "highpass",
+                    frequency: 10000
+                }
+            }),
+            crash_cymbal: () => new Tone.MetalSynth({
+                frequency: 200,
+                envelope: {
+                    attack: 0.001,
+                    decay: 1.4,
+                    sustain: 0.1,
+                    release: 2
+                },
+                harmonicity: 5.1,
+                modulationIndex: 23,
+                resonance: 8000,
+                octaves: 1
             })
         };
 
@@ -559,7 +619,7 @@
                     }
 
                     // Ne pas normaliser l'accélération pour la fréquence si c'est une percussion
-                    if (currentInstrument !== 'percussion') {
+                    if (!percussionInstruments.includes(currentInstrument)) {
                         const normalizedAccel = Math.min(totalAcceleration / 10, 1);
                         frequency = 200 + (normalizedAccel * sensitivity * 10);
                     }
@@ -584,6 +644,7 @@
                 const beta = event.beta || 0;
                 const gamma = event.gamma || 0;
 
+                // Mapper l'orientation à une sorte d'accélération relative pour la démo
                 acceleration.x = gamma / 90 * 5;
                 acceleration.y = beta / 90 * 5;
                 acceleration.z = alpha / 180 * 5;
@@ -594,7 +655,7 @@
                     acceleration.z * acceleration.z
                 );
 
-                if (currentInstrument !== 'percussion') {
+                if (!percussionInstruments.includes(currentInstrument)) {
                     const normalizedAccel = Math.min(totalAcceleration / 5, 1);
                     frequency = 200 + (normalizedAccel * sensitivity * 8);
                 }
@@ -611,26 +672,42 @@
         function playNote() {
             if (!isPlaying || !currentSynth) return;
 
-            // Pour les percussions, nous allons utiliser l'accélération directement
-            if (currentInstrument === 'percussion') {
+            // Pour les instruments de percussion
+            if (percussionInstruments.includes(currentInstrument)) {
                 // Déclenchement de la percussion basé sur l'accélération et la sensibilité
-                // La sensibilité est un nombre de 10 à 100.
-                // On peut la mapper à un seuil d'accélération.
-                // Par exemple, sensibilité 10 -> seuil élevé, sensibilité 100 -> seuil bas
-                // Le 20 est la valeur maximale d'accélération que l'on considère pour le mapping, à ajuster
                 const accelerationThreshold = 20 - (sensitivity / 100) * 15; // Ajustez cette formule selon vos besoins
 
                 if (totalAcceleration > accelerationThreshold) {
                     try {
-                        // Jouer un son de grosse caisse (C1 par exemple)
-                        currentSynth.triggerAttackRelease("C1", "8n");
+                        let noteToPlay = "C1"; // Note par défaut pour la grosse caisse
+                        let duration = "8n"; // Durée par défaut
+
+                        switch (currentInstrument) {
+                            case 'kick_drum':
+                                noteToPlay = "C1";
+                                duration = "8n";
+                                break;
+                            case 'snare_drum':
+                                noteToPlay = "E2"; // Un pitch commun pour la caisse claire
+                                duration = "16n";
+                                break;
+                            case 'hihat':
+                                noteToPlay = "F#4"; // Haute fréquence pour le charleston
+                                duration = "32n";
+                                break;
+                            case 'crash_cymbal':
+                                noteToPlay = "C5"; // Haute fréquence pour la cymbale
+                                duration = "1n"; // Longue durée pour la cymbale
+                                break;
+                        }
+                        currentSynth.triggerAttackRelease(noteToPlay, duration);
+
                         // Empêcher les déclenchements trop rapides
                         if (noteTimeout) {
                             clearTimeout(noteTimeout);
                         }
                         noteTimeout = setTimeout(() => {
-                            // Si besoin d'arrêter un son de percussion après un court instant
-                            // (pas toujours nécessaire pour MembraneSynth avec decay rapide)
+                            // Logic for releasing percussion sound if needed (MetalSynth has its own release)
                         }, 150); // Délai minimum entre les coups de percussion
                     } catch (error) {
                         console.error('Erreur percussion:', error);
@@ -679,18 +756,18 @@
         // Mettre à jour l'affichage
         function updateDisplay() {
             // Mise à jour de la fréquence et de l'accélération
-            frequencyText.textContent = currentInstrument === 'percussion' ? 'N/A' : Math.round(frequency) + ' Hz';
+            frequencyText.textContent = percussionInstruments.includes(currentInstrument) ? 'N/A' : Math.round(frequency) + ' Hz';
             accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
 
             // Visuel du cercle de fréquence (adapté pour les percussions)
-            const normalized = currentInstrument === 'percussion' ? 0 : Math.min((frequency - 200) / 800, 1);
+            const normalized = percussionInstruments.includes(currentInstrument) ? (totalAcceleration / 20) : Math.min((frequency - 200) / 800, 1);
             const hue = 240 - (normalized * 240);
             const saturation = 70 + (normalized * 30);
             const lightness = 40 + (normalized * 20);
             const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
             // Pour la percussion, le cercle peut réagir plus directement à l'accélération
-            const scale = 1 + (totalAcceleration / (currentInstrument === 'percussion' ? 10 : 20));
+            const scale = 1 + (totalAcceleration / (percussionInstruments.includes(currentInstrument) ? 10 : 20));
             frequencyCircle.style.backgroundColor = color;
             frequencyCircle.style.boxShadow = `0 0 ${20 + totalAcceleration * 2}px ${color}`;
             frequencyCircle.style.transform = `scale(${Math.min(scale, 1.5)})`;
@@ -783,7 +860,7 @@
             sensitivity = parseInt(this.value);
             sensitivityLabel.textContent = this.value;
             // Mise à jour de l'affichage en cas de changement de sensibilité pour la percussion
-            if (currentInstrument === 'percussion') {
+            if (percussionInstruments.includes(currentInstrument)) {
                 updateDisplay();
             }
         });
@@ -798,7 +875,10 @@
                 'flute': '🪈 Flûte',
                 'bass': '🎸 Basse',
                 'organ': '⛪ Orgue',
-                'percussion': '🥁 Percussion'
+                'kick_drum': '🥁 Grosse Caisse',
+                'snare_drum': '🥁 Caisse Claire',
+                'hihat': '🥁 Charleston',
+                'crash_cymbal': '🥁 Cymbale Crash'
             };
 
             currentInstrument = this.value;
@@ -808,7 +888,7 @@
                 createInstrument();
                 // Réinitialiser l'affichage de fréquence/accélération si l'instrument change
                 // et le jeu est en cours.
-                if (currentInstrument === 'percussion') {
+                if (percussionInstruments.includes(currentInstrument)) {
                     frequencyText.textContent = 'N/A';
                 } else {
                     frequencyText.textContent = Math.round(frequency) + ' Hz';
@@ -816,7 +896,7 @@
                 accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
             } else {
                  // Mise à jour de l'affichage de l'instrument même si non en jeu
-                 if (currentInstrument === 'percussion') {
+                 if (percussionInstruments.includes(currentInstrument)) {
                     frequencyText.textContent = 'N/A';
                 } else {
                     frequencyText.textContent = '440 Hz'; // Valeur par défaut
