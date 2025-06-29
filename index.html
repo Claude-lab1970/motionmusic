@@ -99,6 +99,38 @@
             height: 100%;
             transition: width 0.1s ease;
         }
+
+        .drum-triggers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .drum-indicator {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .drum-indicator.active {
+            background: rgba(255,215,0,0.8);
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255,215,0,0.6);
+        }
+
+        .drum-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .drum-threshold {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
         
         .controls {
             background: rgba(0,0,0,0.3);
@@ -268,6 +300,25 @@
                     </div>
                 </div>
             </div>
+
+            <div class="drum-triggers">
+                <div class="drum-indicator" id="kickIndicator">
+                    <div class="drum-name">🥁 Kick</div>
+                    <div class="drum-threshold">Seuil: 3.0</div>
+                </div>
+                <div class="drum-indicator" id="snareIndicator">
+                    <div class="drum-name">🔥 Snare</div>
+                    <div class="drum-threshold">Seuil: 5.0</div>
+                </div>
+                <div class="drum-indicator" id="hihatIndicator">
+                    <div class="drum-name">⚡ Hi-Hat</div>
+                    <div class="drum-threshold">Seuil: 2.0</div>
+                </div>
+                <div class="drum-indicator" id="crashIndicator">
+                    <div class="drum-name">💥 Crash</div>
+                    <div class="drum-threshold">Seuil: 8.0</div>
+                </div>
+            </div>
         </div>
         
         <div class="controls">
@@ -298,6 +349,11 @@
                         <option value="flute">🪈 Flûte</option>
                         <option value="bass">🎸 Basse</option>
                         <option value="organ">⛪ Orgue</option>
+                        <option value="kick">🥁 Kick Drum</option>
+                        <option value="snare">🔥 Snare Drum</option>
+                        <option value="hihat">⚡ Hi-Hat</option>
+                        <option value="crash">💥 Crash Cymbal</option>
+                        <option value="drumkit">🥁 Kit Complet</option>
                     </select>
                 </div>
             </div>
@@ -309,6 +365,7 @@
                 <li>• Appuyez sur Play pour commencer</li>
                 <li>• Bougez votre téléphone dans tous les sens</li>
                 <li>• Plus vous bougez fort, plus le son est aigu</li>
+                <li>• Les percussions se déclenchent selon l'intensité</li>
                 <li>• Changez d'instrument pour varier les plaisirs</li>
             </ul>
         </div>
@@ -323,6 +380,7 @@
         // Variables globales
         let isPlaying = false;
         let currentSynth = null;
+        let drumSynths = {};
         let frequency = 440;
         let volume = 0.3;
         let sensitivity = 50;
@@ -333,6 +391,15 @@
         let lastUpdate = 0;
         let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         let noteTimeout = null;
+        let lastDrumTrigger = {};
+
+        // Configuration des seuils de percussion (multiplié par la sensibilité)
+        const drumThresholds = {
+            kick: 3.0,
+            snare: 5.0,
+            hihat: 2.0,
+            crash: 8.0
+        };
 
         // Configuration des instruments avec Tone.js
         const instruments = {
@@ -426,7 +493,57 @@
                     sustain: 0.9,
                     release: 0.4
                 }
-            })
+            }),
+            // Percussions
+            kick: () => new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 10,
+                oscillator: {
+                    type: "sine"
+                },
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.4,
+                    sustain: 0.01,
+                    release: 1.4,
+                    attackCurve: "exponential"
+                }
+            }),
+            snare: () => new Tone.NoiseSynth({
+                noise: {
+                    type: "white"
+                },
+                envelope: {
+                    attack: 0.005,
+                    decay: 0.1,
+                    sustain: 0.0
+                }
+            }),
+            hihat: () => new Tone.MetalSynth({
+                frequency: 200,
+                envelope: {
+                    attack: 0.001,
+                    decay: 0.1,
+                    release: 0.2
+                },
+                harmonicity: 5.1,
+                modulationIndex: 32,
+                resonance: 4000,
+                octaves: 1.5
+            }),
+            crash: () => new Tone.MetalSynth({
+                frequency: 300,
+                envelope: {
+                    attack: 0.001,
+                    decay: 1.4,
+                    release: 3
+                },
+                harmonicity: 3.1,
+                modulationIndex: 16,
+                resonance: 2000,
+                octaves: 1
+            }),
+            drumkit: () => null // Kit complet géré séparément
         };
 
         // Éléments DOM
@@ -451,6 +568,12 @@
         const instrumentSelect = document.getElementById('instrumentSelect');
         const debugInfo = document.getElementById('debugInfo');
 
+        // Indicateurs de percussion
+        const kickIndicator = document.getElementById('kickIndicator');
+        const snareIndicator = document.getElementById('snareIndicator');
+        const hihatIndicator = document.getElementById('hihatIndicator');
+        const crashIndicator = document.getElementById('crashIndicator');
+
         // Fonction de debug
         function updateDebugInfo(message) {
             debugInfo.textContent = `Debug: ${message}`;
@@ -464,8 +587,25 @@
                     updateDebugInfo('Tone.js initialisé');
                 }
                 createInstrument();
+                createDrumKit();
             } catch (error) {
                 updateDebugInfo('Erreur audio: ' + error.message);
+            }
+        }
+
+        // Créer le kit de percussion
+        function createDrumKit() {
+            // Nettoyer les anciens synths
+            Object.values(drumSynths).forEach(synth => {
+                if (synth) synth.dispose();
+            });
+            drumSynths = {};
+
+            // Créer chaque percussion
+            for (const drumType of ['kick', 'snare', 'hihat', 'crash']) {
+                drumSynths[drumType] = instruments[drumType]();
+                drumSynths[drumType].volume.value = Tone.gainToDb(volume);
+                drumSynths[drumType].toDestination();
             }
         }
 
@@ -475,9 +615,15 @@
                 currentSynth.dispose();
             }
             
-            currentSynth = instruments[currentInstrument]();
-            currentSynth.volume.value = Tone.gainToDb(volume);
-            currentSynth.toDestination();
+            if (currentInstrument === 'drumkit') {
+                currentSynth = null; // Pas de synth principal pour le kit complet
+            } else if (instruments[currentInstrument]) {
+                currentSynth = instruments[currentInstrument]();
+                if (currentSynth) {
+                    currentSynth.volume.value = Tone.gainToDb(volume);
+                    currentSynth.toDestination();
+                }
+            }
             
             updateDebugInfo(`Instrument créé: ${currentInstrument}`);
         }
@@ -495,6 +641,59 @@
                 return notes[n] + octave;
             }
             return 'C4';
+        }
+
+        // Déclencher une percussion
+        function triggerDrum(drumType, accel) {
+            const now = Date.now();
+            if (lastDrumTrigger[drumType] && now - lastDrumTrigger[drumType] < 200) return;
+            
+            lastDrumTrigger[drumType] = now;
+            
+            if (drumSynths[drumType]) {
+                try {
+                    if (drumType === 'kick') {
+                        drumSynths[drumType].triggerAttackRelease('C1', '8n');
+                    } else if (drumType === 'snare') {
+                        drumSynths[drumType].triggerAttackRelease('8n');
+                    } else {
+                        drumSynths[drumType].triggerAttackRelease('8n');
+                    }
+                    
+                    // Animation visuelle
+                    const indicator = document.getElementById(drumType + 'Indicator');
+                    if (indicator) {
+                        indicator.classList.add('active');
+                        setTimeout(() => indicator.classList.remove('active'), 300);
+                    }
+                } catch (error) {
+                    console.error(`Erreur percussion ${drumType}:`, error);
+                }
+            }
+        }
+
+        // Vérifier les seuils de percussion
+        function checkDrumTriggers() {
+            const sensitivityFactor = sensitivity / 50; // Normaliser la sensibilité
+            
+            // Vérifier chaque type de percussion
+            for (const [drumType, baseThreshold] of Object.entries(drumThresholds)) {
+                const adjustedThreshold = baseThreshold * sensitivityFactor;
+                
+                if (totalAcceleration > adjustedThreshold) {
+                    triggerDrum(drumType, totalAcceleration);
+                }
+            }
+            
+            // Mettre à jour l'affichage des seuils
+            document.querySelector('#kickIndicator .drum-threshold').textContent = 
+                `Seuil: ${(drumThresholds.kick * sensitivityFactor).toFixed(1)}`;
+            document.querySelector('#snareIndicator .drum-threshold').textContent = 
+                `Seuil: ${(drumThresholds.snare * sensitivityFactor).toFixed(1)}`;
+            document.querySelector('#hihatIndicator .drum-threshold').textContent = 
+                `Seuil: ${(drumThresholds.hihat * sensitivityFactor).toFixed(1)}`;
+            document.querySelector('#crashIndicator .drum-threshold').textContent = 
+                `Seuil: ${(drumThresholds.crash * sensitivityFactor).toFixed(1)}`;
         }
 
         // Demander permission pour capteurs (iOS 13+)
@@ -546,7 +745,24 @@
                     frequency = 200 + (normalizedAccel * sensitivity * 10);
                     
                     updateDisplay();
-                    playNote();
+                    
+                    // Déclencher les percussions selon les seuils
+                    if (currentInstrument === 'drumkit' || ['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                        checkDrumTriggers();
+                    }
+                    
+                    // Jouer la note pour les instruments mélodiques
+                    if (!['drumkit', 'kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                        playNote();
+                    } else if (['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                        // Pour un instrument de percussion spécifique
+                        const sensitivityFactor = sensitivity / 50;
+                        const adjustedThreshold = drumThresholds[currentInstrument] * sensitivityFactor;
+                        if (totalAcceleration > adjustedThreshold) {
+                            triggerDrum(currentInstrument, totalAcceleration);
+                        }
+                    }
+                    
                     updateDebugInfo(`Mouvement: ${totalAcceleration.toFixed(2)} m/s²`);
                 }
             } catch (error) {
@@ -579,7 +795,24 @@
                 frequency = 200 + (normalizedAccel * sensitivity * 8);
                 
                 updateDisplay();
-                playNote();
+                
+                // Déclencher les percussions selon les seuils
+                if (currentInstrument === 'drumkit' || ['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                    checkDrumTriggers();
+                }
+                
+                // Jouer la note pour les instruments mélodiques
+                if (!['drumkit', 'kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                    playNote();
+                } else if (['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
+                    // Pour un instrument de percussion spécifique
+                    const sensitivityFactor = sensitivity / 50;
+                    const adjustedThreshold = drumThresholds[currentInstrument] * sensitivityFactor;
+                    if (totalAcceleration > adjustedThreshold) {
+                        triggerDrum(currentInstrument, totalAcceleration);
+                    }
+                }
+                
                 updateDebugInfo(`Orientation: α${alpha.toFixed(0)}° β${beta.toFixed(0)}° γ${gamma.toFixed(0)}°`);
             } catch (error) {
                 updateDebugInfo('Erreur orientation: ' + error.message);
@@ -593,162 +826,4 @@
             const note = frequencyToNote(frequency);
             
             // Éviter de jouer trop de notes simultanément
-            if (noteTimeout) {
-                clearTimeout(noteTimeout);
-            }
-            
-            try {
-                // Pour certains instruments, utiliser triggerAttackRelease
-                if (currentInstrument === 'guitar' || currentInstrument === 'piano') {
-                    currentSynth.triggerAttackRelease(note, "8n");
-                } else {
-                    // Pour les instruments continus
-                    currentSynth.triggerAttack(note);
-                    noteTimeout = setTimeout(() => {
-                        try {
-                            currentSynth.triggerRelease();
-                        } catch (e) {}
-                    }, 200);
-                }
-            } catch (error) {
-                console.error('Erreur note:', error);
-            }
-        }
-
-        // Mettre à jour l'affichage
-        function updateDisplay() {
-            frequencyText.textContent = Math.round(frequency) + ' Hz';
-            accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
-            
-            const normalized = Math.min((frequency - 200) / 800, 1);
-            const hue = 240 - (normalized * 240);
-            const saturation = 70 + (normalized * 30);
-            const lightness = 40 + (normalized * 20);
-            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-            
-            const scale = 1 + (totalAcceleration / 20);
-            frequencyCircle.style.backgroundColor = color;
-            frequencyCircle.style.boxShadow = `0 0 ${20 + totalAcceleration * 2}px ${color}`;
-            frequencyCircle.style.transform = `scale(${Math.min(scale, 1.5)})`;
-            
-            xValue.textContent = acceleration.x.toFixed(1);
-            yValue.textContent = acceleration.y.toFixed(1);
-            zValue.textContent = acceleration.z.toFixed(1);
-            
-            const maxBar = 20;
-            xBar.style.width = Math.min(Math.abs(acceleration.x) / maxBar * 100, 100) + '%';
-            yBar.style.width = Math.min(Math.abs(acceleration.y) / maxBar * 100, 100) + '%';
-            zBar.style.width = Math.min(Math.abs(acceleration.z) / maxBar * 100, 100) + '%';
-        }
-
-        // Démarrer/arrêter la musique
-        async function togglePlayback() {
-            try {
-                if (!isPlaying) {
-                    if (!permissionGranted) {
-                        const granted = await requestPermission();
-                        if (!granted) {
-                            status.textContent = 'Permission refusée pour les capteurs';
-                            status.style.background = 'rgba(239, 68, 68, 0.3)';
-                            return;
-                        }
-                    }
-
-                    await initAudio();
-                    
-                    if (window.DeviceMotionEvent) {
-                        window.addEventListener('devicemotion', handleMotion, { passive: true });
-                    }
-                    
-                    if (window.DeviceOrientationEvent) {
-                        window.addEventListener('deviceorientation', handleOrientation, { passive: true });
-                    }
-                    
-                    isPlaying = true;
-                    playBtn.textContent = '⏸️';
-                    playBtn.classList.add('playing');
-                    status.textContent = 'Bougez votre téléphone ! 📱';
-                    status.style.background = 'rgba(16, 185, 129, 0.3)';
-                    
-                } else {
-                    if (currentSynth) {
-                        try {
-                            currentSynth.triggerRelease();
-                        } catch (e) {}
-                    }
-                    
-                    window.removeEventListener('devicemotion', handleMotion);
-                    window.removeEventListener('deviceorientation', handleOrientation);
-                    
-                    if (noteTimeout) {
-                        clearTimeout(noteTimeout);
-                        noteTimeout = null;
-                    }
-                    
-                    isPlaying = false;
-                    playBtn.textContent = '▶️';
-                    playBtn.classList.remove('playing');
-                    status.textContent = 'Appuyez sur Play pour commencer';
-                    status.style.background = 'rgba(0,0,0,0.3)';
-                    updateDebugInfo('Arrêté');
-                }
-            } catch (error) {
-                updateDebugInfo('Erreur toggle: ' + error.message);
-                status.textContent = 'Erreur: ' + error.message;
-                status.style.background = 'rgba(239, 68, 68, 0.3)';
-            }
-        }
-
-        // Event listeners
-        playBtn.addEventListener('click', togglePlayback);
-        
-        settingsBtn.addEventListener('click', () => {
-            settings.classList.toggle('show');
-        });
-
-        volumeSlider.addEventListener('input', function() {
-            volume = this.value / 100;
-            volumeLabel.textContent = this.value + '%';
-            if (currentSynth) {
-                currentSynth.volume.value = Tone.gainToDb(volume);
-            }
-        });
-
-        sensitivitySlider.addEventListener('input', function() {
-            sensitivity = parseInt(this.value);
-            sensitivityLabel.textContent = this.value;
-        });
-
-        instrumentSelect.addEventListener('change', function() {
-            const instrumentOptions = {
-                'piano': '🎹 Piano',
-                'guitar': '🎸 Guitare',
-                'trumpet': '🎺 Trompette',
-                'violin': '🎻 Violon',
-                'saxophone': '🎷 Saxophone',
-                'flute': '🪈 Flûte',
-                'bass': '🎸 Basse',
-                'organ': '⛪ Orgue'
-            };
-            
-            currentInstrument = this.value;
-            currentInstrumentEl.textContent = instrumentOptions[currentInstrument];
-            
-            if (isPlaying) {
-                createInstrument();
-            }
-        });
-
-        // Vérification initiale
-        window.addEventListener('load', () => {
-            if (typeof DeviceMotionEvent === 'undefined') {
-                status.textContent = '❌ Capteurs de mouvement non disponibles';
-                status.style.background = 'rgba(239, 68, 68, 0.3)';
-                updateDebugInfo('DeviceMotionEvent non supporté');
-            } else {
-                updateDebugInfo('Capteurs disponibles - Prêt !');
-            }
-        });
-    </script>
-</body>
-</html>
+            if (noteTimeout)
