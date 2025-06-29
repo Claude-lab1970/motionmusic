@@ -10,7 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -19,19 +19,19 @@
             padding: 20px;
             touch-action: manipulation;
         }
-        
+
         .container {
             max-width: 400px;
             margin: 0 auto;
         }
-        
+
         .title {
             text-align: center;
             font-size: 2.5rem;
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .visualizer {
             background: rgba(0,0,0,0.3);
             border-radius: 20px;
@@ -39,7 +39,7 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        
+
         .frequency-circle {
             width: 150px;
             height: 150px;
@@ -53,40 +53,40 @@
             transition: all 0.2s ease;
             background: rgba(255,255,255,0.1);
         }
-        
+
         .frequency-text {
             font-size: 1.8rem;
             font-weight: bold;
         }
-        
+
         .acceleration-text {
             font-size: 0.9rem;
             opacity: 0.8;
         }
-        
+
         .acceleration-bars {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 15px;
             margin-top: 20px;
         }
-        
+
         .axis-display {
             text-align: center;
         }
-        
+
         .axis-label {
             font-size: 0.8rem;
             opacity: 0.7;
             margin-bottom: 5px;
         }
-        
+
         .axis-value {
             font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 10px;
         }
-        
+
         .axis-bar {
             width: 100%;
             height: 8px;
@@ -94,58 +94,26 @@
             border-radius: 4px;
             overflow: hidden;
         }
-        
+
         .axis-bar-fill {
             height: 100%;
             transition: width 0.1s ease;
         }
 
-        .drum-triggers {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .drum-indicator {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            transition: all 0.2s ease;
-        }
-
-        .drum-indicator.active {
-            background: rgba(255,215,0,0.8);
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(255,215,0,0.6);
-        }
-
-        .drum-name {
-            font-size: 0.9rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .drum-threshold {
-            font-size: 0.7rem;
-            opacity: 0.7;
-        }
-        
         .controls {
             background: rgba(0,0,0,0.3);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
         }
-        
+
         .play-controls {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
         }
-        
+
         .btn {
             border: none;
             border-radius: 50%;
@@ -156,41 +124,41 @@
             font-size: 1.5rem;
             transition: all 0.3s ease;
         }
-        
+
         .btn-play {
             width: 70px;
             height: 70px;
             background: #10b981;
         }
-        
+
         .btn-play.playing {
             background: #ef4444;
         }
-        
+
         .btn-settings {
             width: 50px;
             height: 50px;
             background: #6b7280;
         }
-        
+
         .settings {
             display: none;
         }
-        
+
         .settings.show {
             display: block;
         }
-        
+
         .setting-group {
             margin-bottom: 15px;
         }
-        
+
         .setting-label {
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
         }
-        
+
         .slider {
             width: 100%;
             height: 8px;
@@ -199,7 +167,7 @@
             outline: none;
             -webkit-appearance: none;
         }
-        
+
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             width: 20px;
@@ -208,7 +176,7 @@
             background: #667eea;
             cursor: pointer;
         }
-        
+
         .select {
             width: 100%;
             padding: 10px;
@@ -218,26 +186,26 @@
             color: white;
             font-size: 1rem;
         }
-        
+
         .instructions {
             background: rgba(0,0,0,0.2);
             border-radius: 15px;
             padding: 15px;
         }
-        
+
         .instructions h3 {
             margin-bottom: 10px;
         }
-        
+
         .instructions ul {
             list-style: none;
         }
-        
+
         .instructions li {
             margin-bottom: 5px;
             opacity: 0.8;
         }
-        
+
         .status {
             text-align: center;
             margin-bottom: 20px;
@@ -265,18 +233,18 @@
 <body>
     <div class="container">
         <h1 class="title">🎵 Motion Music</h1>
-        
+
         <div class="status" id="status">
             Appuyez sur Play pour commencer
         </div>
-        
+
         <div class="visualizer">
             <div class="current-instrument" id="currentInstrument">🎹 Piano</div>
             <div class="frequency-circle" id="frequencyCircle">
                 <div class="frequency-text" id="frequencyText">440 Hz</div>
                 <div class="acceleration-text" id="accelerationText">0.0 m/s²</div>
             </div>
-            
+
             <div class="acceleration-bars">
                 <div class="axis-display">
                     <div class="axis-label">X</div>
@@ -300,44 +268,25 @@
                     </div>
                 </div>
             </div>
-
-            <div class="drum-triggers">
-                <div class="drum-indicator" id="kickIndicator">
-                    <div class="drum-name">🥁 Kick</div>
-                    <div class="drum-threshold">Seuil: 3.0</div>
-                </div>
-                <div class="drum-indicator" id="snareIndicator">
-                    <div class="drum-name">🔥 Snare</div>
-                    <div class="drum-threshold">Seuil: 5.0</div>
-                </div>
-                <div class="drum-indicator" id="hihatIndicator">
-                    <div class="drum-name">⚡ Hi-Hat</div>
-                    <div class="drum-threshold">Seuil: 2.0</div>
-                </div>
-                <div class="drum-indicator" id="crashIndicator">
-                    <div class="drum-name">💥 Crash</div>
-                    <div class="drum-threshold">Seuil: 8.0</div>
-                </div>
-            </div>
         </div>
-        
+
         <div class="controls">
             <div class="play-controls">
                 <button class="btn btn-play" id="playBtn">▶️</button>
                 <button class="btn btn-settings" id="settingsBtn">⚙️</button>
             </div>
-            
+
             <div class="settings" id="settings">
                 <div class="setting-group">
                     <label class="setting-label">Volume: <span id="volumeLabel">30%</span></label>
                     <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="30">
                 </div>
-                
+
                 <div class="setting-group">
                     <label class="setting-label">Sensibilité: <span id="sensitivityLabel">50</span></label>
                     <input type="range" class="slider" id="sensitivitySlider" min="10" max="100" value="50">
                 </div>
-                
+
                 <div class="setting-group">
                     <label class="setting-label">Instrument:</label>
                     <select class="select" id="instrumentSelect">
@@ -349,23 +298,18 @@
                         <option value="flute">🪈 Flûte</option>
                         <option value="bass">🎸 Basse</option>
                         <option value="organ">⛪ Orgue</option>
-                        <option value="kick">🥁 Kick Drum</option>
-                        <option value="snare">🔥 Snare Drum</option>
-                        <option value="hihat">⚡ Hi-Hat</option>
-                        <option value="crash">💥 Crash Cymbal</option>
-                        <option value="drumkit">🥁 Kit Complet</option>
+                        <option value="percussion">🥁 Percussion</option>
                     </select>
                 </div>
             </div>
         </div>
-        
+
         <div class="instructions">
             <h3>Comment utiliser :</h3>
             <ul>
                 <li>• Appuyez sur Play pour commencer</li>
                 <li>• Bougez votre téléphone dans tous les sens</li>
-                <li>• Plus vous bougez fort, plus le son est aigu</li>
-                <li>• Les percussions se déclenchent selon l'intensité</li>
+                <li>• Plus vous bougez fort, plus le son est aigu (sauf pour les percussions)</li>
                 <li>• Changez d'instrument pour varier les plaisirs</li>
             </ul>
         </div>
@@ -380,7 +324,6 @@
         // Variables globales
         let isPlaying = false;
         let currentSynth = null;
-        let drumSynths = {};
         let frequency = 440;
         let volume = 0.3;
         let sensitivity = 50;
@@ -391,15 +334,6 @@
         let lastUpdate = 0;
         let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         let noteTimeout = null;
-        let lastDrumTrigger = {};
-
-        // Configuration des seuils de percussion (multiplié par la sensibilité)
-        const drumThresholds = {
-            kick: 3.0,
-            snare: 5.0,
-            hihat: 2.0,
-            crash: 8.0
-        };
 
         // Configuration des instruments avec Tone.js
         const instruments = {
@@ -494,8 +428,7 @@
                     release: 0.4
                 }
             }),
-            // Percussions
-            kick: () => new Tone.MembraneSynth({
+            percussion: () => new Tone.MembraneSynth({
                 pitchDecay: 0.05,
                 octaves: 10,
                 oscillator: {
@@ -506,44 +439,9 @@
                     decay: 0.4,
                     sustain: 0.01,
                     release: 1.4,
-                    attackCurve: "exponential"
+                    sustain: 0
                 }
-            }),
-            snare: () => new Tone.NoiseSynth({
-                noise: {
-                    type: "white"
-                },
-                envelope: {
-                    attack: 0.005,
-                    decay: 0.1,
-                    sustain: 0.0
-                }
-            }),
-            hihat: () => new Tone.MetalSynth({
-                frequency: 200,
-                envelope: {
-                    attack: 0.001,
-                    decay: 0.1,
-                    release: 0.2
-                },
-                harmonicity: 5.1,
-                modulationIndex: 32,
-                resonance: 4000,
-                octaves: 1.5
-            }),
-            crash: () => new Tone.MetalSynth({
-                frequency: 300,
-                envelope: {
-                    attack: 0.001,
-                    decay: 1.4,
-                    release: 3
-                },
-                harmonicity: 3.1,
-                modulationIndex: 16,
-                resonance: 2000,
-                octaves: 1
-            }),
-            drumkit: () => null // Kit complet géré séparément
+            })
         };
 
         // Éléments DOM
@@ -568,12 +466,6 @@
         const instrumentSelect = document.getElementById('instrumentSelect');
         const debugInfo = document.getElementById('debugInfo');
 
-        // Indicateurs de percussion
-        const kickIndicator = document.getElementById('kickIndicator');
-        const snareIndicator = document.getElementById('snareIndicator');
-        const hihatIndicator = document.getElementById('hihatIndicator');
-        const crashIndicator = document.getElementById('crashIndicator');
-
         // Fonction de debug
         function updateDebugInfo(message) {
             debugInfo.textContent = `Debug: ${message}`;
@@ -587,25 +479,8 @@
                     updateDebugInfo('Tone.js initialisé');
                 }
                 createInstrument();
-                createDrumKit();
             } catch (error) {
                 updateDebugInfo('Erreur audio: ' + error.message);
-            }
-        }
-
-        // Créer le kit de percussion
-        function createDrumKit() {
-            // Nettoyer les anciens synths
-            Object.values(drumSynths).forEach(synth => {
-                if (synth) synth.dispose();
-            });
-            drumSynths = {};
-
-            // Créer chaque percussion
-            for (const drumType of ['kick', 'snare', 'hihat', 'crash']) {
-                drumSynths[drumType] = instruments[drumType]();
-                drumSynths[drumType].volume.value = Tone.gainToDb(volume);
-                drumSynths[drumType].toDestination();
             }
         }
 
@@ -614,17 +489,11 @@
             if (currentSynth) {
                 currentSynth.dispose();
             }
-            
-            if (currentInstrument === 'drumkit') {
-                currentSynth = null; // Pas de synth principal pour le kit complet
-            } else if (instruments[currentInstrument]) {
-                currentSynth = instruments[currentInstrument]();
-                if (currentSynth) {
-                    currentSynth.volume.value = Tone.gainToDb(volume);
-                    currentSynth.toDestination();
-                }
-            }
-            
+
+            currentSynth = instruments[currentInstrument]();
+            currentSynth.volume.value = Tone.gainToDb(volume);
+            currentSynth.toDestination();
+
             updateDebugInfo(`Instrument créé: ${currentInstrument}`);
         }
 
@@ -632,7 +501,7 @@
         function frequencyToNote(freq) {
             const A4 = 440;
             const C0 = A4 * Math.pow(2, -4.75);
-            
+
             if (freq > C0) {
                 const h = Math.round(12 * Math.log2(freq / C0));
                 const octave = Math.floor(h / 12);
@@ -643,63 +512,10 @@
             return 'C4';
         }
 
-        // Déclencher une percussion
-        function triggerDrum(drumType, accel) {
-            const now = Date.now();
-            if (lastDrumTrigger[drumType] && now - lastDrumTrigger[drumType] < 200) return;
-            
-            lastDrumTrigger[drumType] = now;
-            
-            if (drumSynths[drumType]) {
-                try {
-                    if (drumType === 'kick') {
-                        drumSynths[drumType].triggerAttackRelease('C1', '8n');
-                    } else if (drumType === 'snare') {
-                        drumSynths[drumType].triggerAttackRelease('8n');
-                    } else {
-                        drumSynths[drumType].triggerAttackRelease('8n');
-                    }
-                    
-                    // Animation visuelle
-                    const indicator = document.getElementById(drumType + 'Indicator');
-                    if (indicator) {
-                        indicator.classList.add('active');
-                        setTimeout(() => indicator.classList.remove('active'), 300);
-                    }
-                } catch (error) {
-                    console.error(`Erreur percussion ${drumType}:`, error);
-                }
-            }
-        }
-
-        // Vérifier les seuils de percussion
-        function checkDrumTriggers() {
-            const sensitivityFactor = sensitivity / 50; // Normaliser la sensibilité
-            
-            // Vérifier chaque type de percussion
-            for (const [drumType, baseThreshold] of Object.entries(drumThresholds)) {
-                const adjustedThreshold = baseThreshold * sensitivityFactor;
-                
-                if (totalAcceleration > adjustedThreshold) {
-                    triggerDrum(drumType, totalAcceleration);
-                }
-            }
-            
-            // Mettre à jour l'affichage des seuils
-            document.querySelector('#kickIndicator .drum-threshold').textContent = 
-                `Seuil: ${(drumThresholds.kick * sensitivityFactor).toFixed(1)}`;
-            document.querySelector('#snareIndicator .drum-threshold').textContent = 
-                `Seuil: ${(drumThresholds.snare * sensitivityFactor).toFixed(1)}`;
-            document.querySelector('#hihatIndicator .drum-threshold').textContent = 
-                `Seuil: ${(drumThresholds.hihat * sensitivityFactor).toFixed(1)}`;
-            document.querySelector('#crashIndicator .drum-threshold').textContent = 
-                `Seuil: ${(drumThresholds.crash * sensitivityFactor).toFixed(1)}`;
-        }
-
         // Demander permission pour capteurs (iOS 13+)
         async function requestPermission() {
             updateDebugInfo('Demande de permission...');
-            
+
             if (isIOS && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 try {
                     const permission = await DeviceMotionEvent.requestPermission();
@@ -725,44 +541,31 @@
 
             try {
                 const accel = event.acceleration || event.accelerationIncludingGravity;
-                
+
                 if (accel) {
                     acceleration.x = accel.x || 0;
                     acceleration.y = accel.y || 0;
                     acceleration.z = accel.z || 0;
-                    
+
                     totalAcceleration = Math.sqrt(
-                        acceleration.x * acceleration.x + 
-                        acceleration.y * acceleration.y + 
+                        acceleration.x * acceleration.x +
+                        acceleration.y * acceleration.y +
                         acceleration.z * acceleration.z
                     );
-                    
+
+                    // Si on utilise accelerationIncludingGravity, soustraire la gravité
                     if (!event.acceleration && event.accelerationIncludingGravity) {
                         totalAcceleration = Math.max(0, totalAcceleration - 9.8);
                     }
-                    
-                    const normalizedAccel = Math.min(totalAcceleration / 10, 1);
-                    frequency = 200 + (normalizedAccel * sensitivity * 10);
-                    
+
+                    // Ne pas normaliser l'accélération pour la fréquence si c'est une percussion
+                    if (currentInstrument !== 'percussion') {
+                        const normalizedAccel = Math.min(totalAcceleration / 10, 1);
+                        frequency = 200 + (normalizedAccel * sensitivity * 10);
+                    }
+
                     updateDisplay();
-                    
-                    // Déclencher les percussions selon les seuils
-                    if (currentInstrument === 'drumkit' || ['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                        checkDrumTriggers();
-                    }
-                    
-                    // Jouer la note pour les instruments mélodiques
-                    if (!['drumkit', 'kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                        playNote();
-                    } else if (['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                        // Pour un instrument de percussion spécifique
-                        const sensitivityFactor = sensitivity / 50;
-                        const adjustedThreshold = drumThresholds[currentInstrument] * sensitivityFactor;
-                        if (totalAcceleration > adjustedThreshold) {
-                            triggerDrum(currentInstrument, totalAcceleration);
-                        }
-                    }
-                    
+                    playNote();
                     updateDebugInfo(`Mouvement: ${totalAcceleration.toFixed(2)} m/s²`);
                 }
             } catch (error) {
@@ -780,39 +583,24 @@
                 const alpha = event.alpha || 0;
                 const beta = event.beta || 0;
                 const gamma = event.gamma || 0;
-                
+
                 acceleration.x = gamma / 90 * 5;
                 acceleration.y = beta / 90 * 5;
                 acceleration.z = alpha / 180 * 5;
-                
+
                 totalAcceleration = Math.sqrt(
-                    acceleration.x * acceleration.x + 
-                    acceleration.y * acceleration.y + 
+                    acceleration.x * acceleration.x +
+                    acceleration.y * acceleration.y +
                     acceleration.z * acceleration.z
                 );
-                
-                const normalizedAccel = Math.min(totalAcceleration / 5, 1);
-                frequency = 200 + (normalizedAccel * sensitivity * 8);
-                
+
+                if (currentInstrument !== 'percussion') {
+                    const normalizedAccel = Math.min(totalAcceleration / 5, 1);
+                    frequency = 200 + (normalizedAccel * sensitivity * 8);
+                }
+
                 updateDisplay();
-                
-                // Déclencher les percussions selon les seuils
-                if (currentInstrument === 'drumkit' || ['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                    checkDrumTriggers();
-                }
-                
-                // Jouer la note pour les instruments mélodiques
-                if (!['drumkit', 'kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                    playNote();
-                } else if (['kick', 'snare', 'hihat', 'crash'].includes(currentInstrument)) {
-                    // Pour un instrument de percussion spécifique
-                    const sensitivityFactor = sensitivity / 50;
-                    const adjustedThreshold = drumThresholds[currentInstrument] * sensitivityFactor;
-                    if (totalAcceleration > adjustedThreshold) {
-                        triggerDrum(currentInstrument, totalAcceleration);
-                    }
-                }
-                
+                playNote();
                 updateDebugInfo(`Orientation: α${alpha.toFixed(0)}° β${beta.toFixed(0)}° γ${gamma.toFixed(0)}°`);
             } catch (error) {
                 updateDebugInfo('Erreur orientation: ' + error.message);
@@ -821,9 +609,232 @@
 
         // Jouer une note
         function playNote() {
-            if (!isPlaying || !currentSynth || totalAcceleration < 0.5) return;
-            
+            if (!isPlaying || !currentSynth) return;
+
+            // Pour les percussions, nous allons utiliser l'accélération directement
+            if (currentInstrument === 'percussion') {
+                // Déclenchement de la percussion basé sur l'accélération et la sensibilité
+                // La sensibilité est un nombre de 10 à 100.
+                // On peut la mapper à un seuil d'accélération.
+                // Par exemple, sensibilité 10 -> seuil élevé, sensibilité 100 -> seuil bas
+                // Le 20 est la valeur maximale d'accélération que l'on considère pour le mapping, à ajuster
+                const accelerationThreshold = 20 - (sensitivity / 100) * 15; // Ajustez cette formule selon vos besoins
+
+                if (totalAcceleration > accelerationThreshold) {
+                    try {
+                        // Jouer un son de grosse caisse (C1 par exemple)
+                        currentSynth.triggerAttackRelease("C1", "8n");
+                        // Empêcher les déclenchements trop rapides
+                        if (noteTimeout) {
+                            clearTimeout(noteTimeout);
+                        }
+                        noteTimeout = setTimeout(() => {
+                            // Si besoin d'arrêter un son de percussion après un court instant
+                            // (pas toujours nécessaire pour MembraneSynth avec decay rapide)
+                        }, 150); // Délai minimum entre les coups de percussion
+                    } catch (error) {
+                        console.error('Erreur percussion:', error);
+                    }
+                }
+                return; // Sortir de la fonction pour éviter de jouer d'autres notes
+            }
+
+            // Code existant pour les instruments mélodiques
+            // Ne jouer une note que si l'accélération est suffisante
+            if (totalAcceleration < 0.5) { // Seuil minimal pour les instruments mélodiques
+                if (currentSynth.release) { // Si le synthé a une méthode release
+                    try {
+                        currentSynth.triggerRelease();
+                    } catch (e) {}
+                }
+                return;
+            }
+
+
             const note = frequencyToNote(frequency);
-            
+
             // Éviter de jouer trop de notes simultanément
-            if (noteTimeout)
+            if (noteTimeout) {
+                clearTimeout(noteTimeout);
+            }
+
+            try {
+                // Pour certains instruments, utiliser triggerAttackRelease
+                if (currentInstrument === 'guitar' || currentInstrument === 'piano' || currentInstrument === 'bass') {
+                    currentSynth.triggerAttackRelease(note, "8n");
+                } else {
+                    // Pour les instruments continus
+                    currentSynth.triggerAttack(note);
+                    noteTimeout = setTimeout(() => {
+                        try {
+                            currentSynth.triggerRelease();
+                        } catch (e) {}
+                    }, 200);
+                }
+            } catch (error) {
+                console.error('Erreur note:', error);
+            }
+        }
+
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            // Mise à jour de la fréquence et de l'accélération
+            frequencyText.textContent = currentInstrument === 'percussion' ? 'N/A' : Math.round(frequency) + ' Hz';
+            accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
+
+            // Visuel du cercle de fréquence (adapté pour les percussions)
+            const normalized = currentInstrument === 'percussion' ? 0 : Math.min((frequency - 200) / 800, 1);
+            const hue = 240 - (normalized * 240);
+            const saturation = 70 + (normalized * 30);
+            const lightness = 40 + (normalized * 20);
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+            // Pour la percussion, le cercle peut réagir plus directement à l'accélération
+            const scale = 1 + (totalAcceleration / (currentInstrument === 'percussion' ? 10 : 20));
+            frequencyCircle.style.backgroundColor = color;
+            frequencyCircle.style.boxShadow = `0 0 ${20 + totalAcceleration * 2}px ${color}`;
+            frequencyCircle.style.transform = `scale(${Math.min(scale, 1.5)})`;
+
+            // Barres d'accélération
+            xValue.textContent = acceleration.x.toFixed(1);
+            yValue.textContent = acceleration.y.toFixed(1);
+            zValue.textContent = acceleration.z.toFixed(1);
+
+            const maxBar = 20; // Accélération maximale pour la barre à 100%
+            xBar.style.width = Math.min(Math.abs(acceleration.x) / maxBar * 100, 100) + '%';
+            yBar.style.width = Math.min(Math.abs(acceleration.y) / maxBar * 100, 100) + '%';
+            zBar.style.width = Math.min(Math.abs(acceleration.z) / maxBar * 100, 100) + '%';
+        }
+
+        // Démarrer/arrêter la musique
+        async function togglePlayback() {
+            try {
+                if (!isPlaying) {
+                    if (!permissionGranted) {
+                        const granted = await requestPermission();
+                        if (!granted) {
+                            status.textContent = 'Permission refusée pour les capteurs';
+                            status.style.background = 'rgba(239, 68, 68, 0.3)';
+                            return;
+                        }
+                    }
+
+                    await initAudio();
+
+                    if (window.DeviceMotionEvent) {
+                        window.addEventListener('devicemotion', handleMotion, { passive: true });
+                    }
+
+                    if (window.DeviceOrientationEvent) {
+                        window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+                    }
+
+                    isPlaying = true;
+                    playBtn.textContent = '⏸️';
+                    playBtn.classList.add('playing');
+                    status.textContent = 'Bougez votre téléphone ! 📱';
+                    status.style.background = 'rgba(16, 185, 129, 0.3)';
+
+                } else {
+                    if (currentSynth) {
+                        try {
+                            currentSynth.triggerRelease();
+                        } catch (e) {}
+                    }
+
+                    window.removeEventListener('devicemotion', handleMotion);
+                    window.removeEventListener('deviceorientation', handleOrientation);
+
+                    if (noteTimeout) {
+                        clearTimeout(noteTimeout);
+                        noteTimeout = null;
+                    }
+
+                    isPlaying = false;
+                    playBtn.textContent = '▶️';
+                    playBtn.classList.remove('playing');
+                    status.textContent = 'Appuyez sur Play pour commencer';
+                    status.style.background = 'rgba(0,0,0,0.3)';
+                    updateDebugInfo('Arrêté');
+                }
+            } catch (error) {
+                updateDebugInfo('Erreur toggle: ' + error.message);
+                status.textContent = 'Erreur: ' + error.message;
+                status.style.background = 'rgba(239, 68, 68, 0.3)';
+            }
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlayback);
+
+        settingsBtn.addEventListener('click', () => {
+            settings.classList.toggle('show');
+        });
+
+        volumeSlider.addEventListener('input', function() {
+            volume = this.value / 100;
+            volumeLabel.textContent = this.value + '%';
+            if (currentSynth) {
+                currentSynth.volume.value = Tone.gainToDb(volume);
+            }
+        });
+
+        sensitivitySlider.addEventListener('input', function() {
+            sensitivity = parseInt(this.value);
+            sensitivityLabel.textContent = this.value;
+            // Mise à jour de l'affichage en cas de changement de sensibilité pour la percussion
+            if (currentInstrument === 'percussion') {
+                updateDisplay();
+            }
+        });
+
+        instrumentSelect.addEventListener('change', function() {
+            const instrumentOptions = {
+                'piano': '🎹 Piano',
+                'guitar': '🎸 Guitare',
+                'trumpet': '🎺 Trompette',
+                'violin': '🎻 Violon',
+                'saxophone': '🎷 Saxophone',
+                'flute': '🪈 Flûte',
+                'bass': '🎸 Basse',
+                'organ': '⛪ Orgue',
+                'percussion': '🥁 Percussion'
+            };
+
+            currentInstrument = this.value;
+            currentInstrumentEl.textContent = instrumentOptions[currentInstrument];
+
+            if (isPlaying) {
+                createInstrument();
+                // Réinitialiser l'affichage de fréquence/accélération si l'instrument change
+                // et le jeu est en cours.
+                if (currentInstrument === 'percussion') {
+                    frequencyText.textContent = 'N/A';
+                } else {
+                    frequencyText.textContent = Math.round(frequency) + ' Hz';
+                }
+                accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
+            } else {
+                 // Mise à jour de l'affichage de l'instrument même si non en jeu
+                 if (currentInstrument === 'percussion') {
+                    frequencyText.textContent = 'N/A';
+                } else {
+                    frequencyText.textContent = '440 Hz'; // Valeur par défaut
+                }
+                accelerationText.textContent = '0.0 m/s²';
+            }
+        });
+
+        // Vérification initiale
+        window.addEventListener('load', () => {
+            if (typeof DeviceMotionEvent === 'undefined') {
+                status.textContent = '❌ Capteurs de mouvement non disponibles';
+                status.style.background = 'rgba(239, 68, 68, 0.3)';
+                updateDebugInfo('DeviceMotionEvent non supporté');
+            } else {
+                updateDebugInfo('Capteurs disponibles - Prêt !');
+            }
+        });
+    </script>
+</body>
+</html>
