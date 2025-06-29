@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .visualizer {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .frequency-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border: 3px solid rgba(255,255,255,0.3);
+            transition: all 0.2s ease;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .frequency-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .acceleration-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .acceleration-bars {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .axis-display {
+            text-align: center;
+        }
+        
+        .axis-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        
+        .axis-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .axis-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .axis-bar-fill {
+            height: 100%;
+            transition: width 0.1s ease;
+        }
+        
+        .controls {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .play-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-play {
+            width: 70px;
+            height: 70px;
+            background: #10b981;
+        }
+        
+        .btn-play.playing {
+            background: #ef4444;
+        }
+        
+        .btn-settings {
+            width: 50px;
+            height: 50px;
+            background: #6b7280;
+        }
+        
+        .settings {
+            display: none;
+        }
+        
+        .settings.show {
+            display: block;
+        }
+        
+        .setting-group {
+            margin-bottom: 15px;
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #6b7280;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        .select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #6b7280;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .instructions {
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 15px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            list-style: none;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+        
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .debug-info {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎵 Motion Music</h1>
+        
+        <div class="status" id="status">
+            Appuyez sur Play pour commencer
+        </div>
+        
+        <div class="visualizer">
+            <div class="frequency-circle" id="frequencyCircle">
+                <div class="frequency-text" id="frequencyText">440 Hz</div>
+                <div class="acceleration-text" id="accelerationText">0.0 m/s²</div>
+            </div>
+            
+            <div class="acceleration-bars">
+                <div class="axis-display">
+                    <div class="axis-label">X</div>
+                    <div class="axis-value" id="xValue">0.0</div>
+                    <div class="axis-bar">
+                        <div class="axis-bar-fill" id="xBar" style="background: #ef4444; width: 0%"></div>
+                    </div>
+                </div>
+                <div class="axis-display">
+                    <div class="axis-label">Y</div>
+                    <div class="axis-value" id="yValue">0.0</div>
+                    <div class="axis-bar">
+                        <div class="axis-bar-fill" id="yBar" style="background: #10b981; width: 0%"></div>
+                    </div>
+                </div>
+                <div class="axis-display">
+                    <div class="axis-label">Z</div>
+                    <div class="axis-value" id="zValue">0.0</div>
+                    <div class="axis-bar">
+                        <div class="axis-bar-fill" id="zBar" style="background: #3b82f6; width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="play-controls">
+                <button class="btn btn-play" id="playBtn">▶️</button>
+                <button class="btn btn-settings" id="settingsBtn">⚙️</button>
+            </div>
+            
+            <div class="settings" id="settings">
+                <div class="setting-group">
+                    <label class="setting-label">Volume: <span id="volumeLabel">30%</span></label>
+                    <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="30">
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Sensibilité: <span id="sensitivityLabel">50</span></label>
+                    <input type="range" class="slider" id="sensitivitySlider" min="10" max="100" value="50">
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Forme d'onde:</label>
+                    <select class="select" id="waveformSelect">
+                        <option value="sine">Sinusoïdale</option>
+                        <option value="square">Carrée</option>
+                        <option value="sawtooth">Dent de scie</option>
+                        <option value="triangle">Triangle</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Comment utiliser :</h3>
+            <ul>
+                <li>• Appuyez sur Play pour commencer</li>
+                <li>• Bougez votre téléphone dans tous les sens</li>
+                <li>• Plus vous bougez fort, plus le son est aigu</li>
+                <li>• Ajustez les paramètres selon vos préférences</li>
+            </ul>
+        </div>
+
+        <div class="debug-info" id="debugInfo">
+            Capteurs: En attente...
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let isPlaying = false;
+        let audioContext = null;
+        let oscillator = null;
+        let gainNode = null;
+        let frequency = 440;
+        let volume = 0.3;
+        let sensitivity = 50;
+        let waveform = 'sine';
+        let permissionGranted = false;
+        let acceleration = { x: 0, y: 0, z: 0 };
+        let totalAcceleration = 0;
+        let lastUpdate = 0;
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        // Éléments DOM
+        const playBtn = document.getElementById('playBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settings = document.getElementById('settings');
+        const status = document.getElementById('status');
+        const frequencyCircle = document.getElementById('frequencyCircle');
+        const frequencyText = document.getElementById('frequencyText');
+        const accelerationText = document.getElementById('accelerationText');
+        const xValue = document.getElementById('xValue');
+        const yValue = document.getElementById('yValue');
+        const zValue = document.getElementById('zValue');
+        const xBar = document.getElementById('xBar');
+        const yBar = document.getElementById('yBar');
+        const zBar = document.getElementById('zBar');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeLabel = document.getElementById('volumeLabel');
+        const sensitivitySlider = document.getElementById('sensitivitySlider');
+        const sensitivityLabel = document.getElementById('sensitivityLabel');
+        const waveformSelect = document.getElementById('waveformSelect');
+        const debugInfo = document.getElementById('debugInfo');
+
+        // Fonction de debug
+        function updateDebugInfo(message) {
+            debugInfo.textContent = `Debug: ${message}`;
+        }
+
+        // Initialiser l'audio
+        function initAudio() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    gainNode = audioContext.createGain();
+                    gainNode.connect(audioContext.destination);
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    updateDebugInfo('Audio initialisé');
+                }
+            } catch (error) {
+                updateDebugInfo('Erreur audio: ' + error.message);
+            }
+        }
+
+        // Demander permission pour capteurs (iOS 13+)
+        async function requestPermission() {
+            updateDebugInfo('Demande de permission...');
+            
+            if (isIOS && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    permissionGranted = permission === 'granted';
+                    updateDebugInfo(`Permission iOS: ${permission}`);
+                    return permissionGranted;
+                } catch (error) {
+                    updateDebugInfo('Erreur permission iOS: ' + error.message);
+                    return false;
+                }
+            } else {
+                // Pour Android et autres navigateurs
+                permissionGranted = true;
+                updateDebugInfo('Permission accordée (non-iOS)');
+                return true;
+            }
+        }
+
+        // Gérer les données de mouvement
+        function handleMotion(event) {
+            const now = Date.now();
+            if (now - lastUpdate < 50) return; // Limiter à 20 FPS
+            lastUpdate = now;
+
+            try {
+                // Utiliser accelerationIncludingGravity comme fallback
+                const accel = event.acceleration || event.accelerationIncludingGravity;
+                
+                if (accel) {
+                    acceleration.x = accel.x || 0;
+                    acceleration.y = accel.y || 0;
+                    acceleration.z = accel.z || 0;
+                    
+                    // Calculer l'accélération totale
+                    totalAcceleration = Math.sqrt(
+                        acceleration.x * acceleration.x + 
+                        acceleration.y * acceleration.y + 
+                        acceleration.z * acceleration.z
+                    );
+                    
+                    // Si on utilise accelerationIncludingGravity, soustraire la gravité approximative
+                    if (!event.acceleration && event.accelerationIncludingGravity) {
+                        totalAcceleration = Math.max(0, totalAcceleration - 9.8);
+                    }
+                    
+                    // Calculer la fréquence basée sur le mouvement
+                    const normalizedAccel = Math.min(totalAcceleration / 10, 1);
+                    frequency = 200 + (normalizedAccel * sensitivity * 10);
+                    
+                    updateDisplay();
+                    updateDebugInfo(`Mouvement détecté: ${totalAcceleration.toFixed(2)} m/s²`);
+                } else {
+                    updateDebugInfo('Pas de données d\'accélération');
+                }
+            } catch (error) {
+                updateDebugInfo('Erreur motion: ' + error.message);
+            }
+        }
+
+        // Alternative avec DeviceOrientationEvent pour plus de compatibilité
+        function handleOrientation(event) {
+            const now = Date.now();
+            if (now - lastUpdate < 100) return;
+            lastUpdate = now;
+
+            try {
+                const alpha = event.alpha || 0;
+                const beta = event.beta || 0;
+                const gamma = event.gamma || 0;
+                
+                // Simuler l'accélération basée sur l'orientation
+                acceleration.x = gamma / 90 * 5;
+                acceleration.y = beta / 90 * 5;
+                acceleration.z = alpha / 180 * 5;
+                
+                totalAcceleration = Math.sqrt(
+                    acceleration.x * acceleration.x + 
+                    acceleration.y * acceleration.y + 
+                    acceleration.z * acceleration.z
+                );
+                
+                const normalizedAccel = Math.min(totalAcceleration / 5, 1);
+                frequency = 200 + (normalizedAccel * sensitivity * 8);
+                
+                updateDisplay();
+                updateDebugInfo(`Orientation: α${alpha.toFixed(0)}° β${beta.toFixed(0)}° γ${gamma.toFixed(0)}°`);
+            } catch (error) {
+                updateDebugInfo('Erreur orientation: ' + error.message);
+            }
+        }
+
+        // Mettre à jour l'affichage
+        function updateDisplay() {
+            // Mettre à jour les textes
+            frequencyText.textContent = Math.round(frequency) + ' Hz';
+            accelerationText.textContent = totalAcceleration.toFixed(1) + ' m/s²';
+            
+            // Calculer la couleur basée sur la fréquence
+            const normalized = Math.min((frequency - 200) / 800, 1);
+            const hue = 240 - (normalized * 240); // Bleu vers rouge
+            const saturation = 70 + (normalized * 30); // Plus saturé avec plus de mouvement
+            const lightness = 40 + (normalized * 20); // Plus lumineux avec plus de mouvement
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            
+            // Appliquer les effets visuels
+            const scale = 1 + (totalAcceleration / 20);
+            frequencyCircle.style.backgroundColor = color;
+            frequencyCircle.style.boxShadow = `0 0 ${20 + totalAcceleration * 2}px ${color}`;
+            frequencyCircle.style.transform = `scale(${Math.min(scale, 1.5)})`;
+            
+            // Mettre à jour les barres d'accélération
+            xValue.textContent = acceleration.x.toFixed(1);
+            yValue.textContent = acceleration.y.toFixed(1);
+            zValue.textContent = acceleration.z.toFixed(1);
+            
+            const maxBar = 20; // Valeur max pour les barres
+            xBar.style.width = Math.min(Math.abs(acceleration.x) / maxBar * 100, 100) + '%';
+            yBar.style.width = Math.min(Math.abs(acceleration.y) / maxBar * 100, 100) + '%';
+            zBar.style.width = Math.min(Math.abs(acceleration.z) / maxBar * 100, 100) + '%';
+            
+            // Mettre à jour l'oscillateur si en cours de lecture
+            if (isPlaying && oscillator && audioContext) {
+                try {
+                    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                } catch (error) {
+                    console.error('Erreur oscillateur:', error);
+                }
+            }
+        }
+
+        // Créer un nouvel oscillateur
+        function createOscillator() {
+            if (oscillator) {
+                try {
+                    oscillator.stop();
+                    oscillator.disconnect();
+                } catch (error) {
+                    console.error('Erreur arrêt oscillateur:', error);
+                }
+            }
+            
+            oscillator = audioContext.createOscillator();
+            oscillator.type = waveform;
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.connect(gainNode);
+            
+            // Redémarrer quand l'oscillateur se termine
+            oscillator.onended = () => {
+                if (isPlaying) {
+                    setTimeout(createOscillator, 10);
+                }
+            };
+            
+            oscillator.start();
+        }
+
+        // Démarrer/arrêter la musique
+        async function togglePlayback() {
+            try {
+                if (!isPlaying) {
+                    // Demander permission si nécessaire
+                    if (!permissionGranted) {
+                        const granted = await requestPermission();
+                        if (!granted) {
+                            status.textContent = 'Permission refusée pour les capteurs';
+                            status.style.background = 'rgba(239, 68, 68, 0.3)';
+                            return;
+                        }
+                    }
+
+                    // Initialiser l'audio
+                    initAudio();
+                    
+                    if (audioContext.state === 'suspended') {
+                        await audioContext.resume();
+                    }
+
+                    // Créer l'oscillateur
+                    createOscillator();
+                    
+                    // Configurer le volume
+                    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                    
+                    // Ajouter les écouteurs de mouvement
+                    if (window.DeviceMotionEvent) {
+                        window.addEventListener('devicemotion', handleMotion, { passive: true });
+                        updateDebugInfo('Écouteur devicemotion ajouté');
+                    }
+                    
+                    // Fallback avec orientation
+                    if (window.DeviceOrientationEvent) {
+                        window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+                        updateDebugInfo('Écouteur deviceorientation ajouté');
+                    }
+                    
+                    isPlaying = true;
+                    playBtn.textContent = '⏸️';
+                    playBtn.classList.add('playing');
+                    status.textContent = 'Bougez votre téléphone ! 📱';
+                    status.style.background = 'rgba(16, 185, 129, 0.3)';
+                    
+                } else {
+                    // Arrêter
+                    if (oscillator) {
+                        try {
+                            oscillator.stop();
+                            oscillator.disconnect();
+                            oscillator = null;
+                        } catch (error) {
+                            console.error('Erreur arrêt:', error);
+                        }
+                    }
+                    
+                    if (gainNode) {
+                        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    }
+                    
+                    // Retirer les écouteurs
+                    window.removeEventListener('devicemotion', handleMotion);
+                    window.removeEventListener('deviceorientation', handleOrientation);
+                    
+                    isPlaying = false;
+                    playBtn.textContent = '▶️';
+                    playBtn.classList.remove('playing');
+                    status.textContent = 'Appuyez sur Play pour commencer';
+                    status.style.background = 'rgba(0,0,0,0.3)';
+                    updateDebugInfo('Arrêté');
+                }
+            } catch (error) {
+                updateDebugInfo('Erreur toggle: ' + error.message);
+                status.textContent = 'Erreur: ' + error.message;
+                status.style.background = 'rgba(239, 68, 68, 0.3)';
+            }
+        }
+
+        // Event listeners
+        playBtn.addEventListener('click', togglePlayback);
+        
+        settingsBtn.addEventListener('click', () => {
+            settings.classList.toggle('show');
+        });
+
+        volumeSlider.addEventListener('input', function() {
+            volume = this.value / 100;
+            volumeLabel.textContent = this.value + '%';
+            if (gainNode && isPlaying) {
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            }
+        });
+
+        sensitivitySlider.addEventListener('input', function() {
+            sensitivity = parseInt(this.value);
+            sensitivityLabel.textContent = this.value;
+        });
+
+        waveformSelect.addEventListener('change', function() {
+            waveform = this.value;
+            if (isPlaying && oscillator) {
+                oscillator.type = waveform;
+            }
+        });
+
+        // Vérification initiale des capteurs
+        window.addEventListener('load', () => {
+            if (typeof DeviceMotionEvent === 'undefined') {
+                status.textContent = '❌ Capteurs de mouvement non disponibles';
+                status.style.background = 'rgba(239, 68, 68, 0.3)';
+                updateDebugInfo('DeviceMotionEvent non supporté');
+            } else if (typeof DeviceOrientationEvent === 'undefined') {
+                updateDebugInfo('DeviceOrientationEvent non supporté');
+            } else {
+                updateDebugInfo('Capteurs disponibles - Prêt !');
+            }
+        });
+
+        // Test de mouvement pour debug
+        let testCounter = 0;
+        setInterval(() => {
+            if (!isPlaying) {
+                testCounter += 0.1;
+                const testAccel = Math.sin(testCounter) * 2;
+                if (Math.abs(testAccel) > 1.5) {
+                    updateDebugInfo(`Test mouvement: ${testAccel.toFixed(2)}`);
+                }
+            }
+        }, 100);
+    </script>
+</body>
+</html>
